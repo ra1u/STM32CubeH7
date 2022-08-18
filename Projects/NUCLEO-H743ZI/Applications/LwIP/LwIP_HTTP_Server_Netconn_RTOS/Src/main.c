@@ -95,7 +95,8 @@ static void StartThread(void const * argument)
   Netif_Config();
 
   /* Initialize webserver demo */
-  http_server_netconn_init();
+  //http_server_netconn_init();
+  echo_server_netconn_init();
   
   for( ;; )
   {

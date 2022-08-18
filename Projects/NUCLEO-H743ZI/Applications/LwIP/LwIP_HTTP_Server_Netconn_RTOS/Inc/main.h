@@ -34,8 +34,8 @@
 /*Static IP ADDRESS*/
 #define IP_ADDR0   ((uint8_t)192U)
 #define IP_ADDR1   ((uint8_t)168U)
-#define IP_ADDR2   ((uint8_t)0U)
-#define IP_ADDR3   ((uint8_t)10U)
+#define IP_ADDR2   ((uint8_t)227U)
+#define IP_ADDR3   ((uint8_t)11U)
 
 /*NETMASK*/
 #define NETMASK_ADDR0   ((uint8_t)255U)

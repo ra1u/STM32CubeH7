@@ -262,6 +262,81 @@ static void http_server_netconn_thread(void *arg)
   }
 }
 
+static void
+tcpecho_thread(void *arg)
+{
+  struct netconn *conn, *newconn;
+  err_t err;
+  LWIP_UNUSED_ARG(arg);
+
+  /* Create a new connection identifier. */
+  /* Bind connection to well known port number 7. */
+#if LWIP_IPV6
+  conn = netconn_new(NETCONN_TCP_IPV6);
+  netconn_bind(conn, IP6_ADDR_ANY, 7);
+#else /* LWIP_IPV6 */
+  conn = netconn_new(NETCONN_TCP);
+  netconn_bind(conn, IP_ADDR_ANY, 7);
+#endif /* LWIP_IPV6 */
+  LWIP_ERROR("tcpecho: invalid conn", (conn != NULL), return;);
+
+  /* Tell connection to go into listening mode. */
+  netconn_listen(conn);
+
+  while (1) {
+
+    /* Grab new connection. */
+    err = netconn_accept(conn, &newconn);
+    /*printf("accepted new connection %p\n", newconn);*/
+    /* Process the new connection. */
+    if (err == ERR_OK) {
+   	  netconn_set_sendtimeout(newconn,10000);
+      do {
+    	struct pbuf *buf = NULL;
+    	err = netconn_recv_tcp_pbuf(newconn, &buf);
+    	if(err != ERR_OK){
+    		if(buf){
+    			pbuf_free(buf);
+    		}
+    		break;
+    	}
+        do {
+        	 const void* paylod = buf->payload;
+        	 uint16_t len = buf->len;
+        	 while(len > 0){
+        	   size_t txsize = 0;
+               err = netconn_write_partly(newconn, buf->payload, buf->len, NETCONN_COPY,&txsize);
+               if(err != ERR_OK){
+            	   break;
+               }
+               LWIP_ASSERT("txsize <= len", txsize <= len);
+               len -= txsize;
+               paylod += len;
+        	 }
+             if(err != ERR_OK){
+            	 pbuf_free(buf);
+            	 buf = NULL;
+            	 break;
+             }
+             struct pbuf *next = buf->next;
+             buf->next = NULL;
+             pbuf_free(buf);
+             buf = next;
+        } while(buf != NULL);
+      } while (err == ERR_OK );
+      /*printf("Got EOF, looping\n");*/
+      /* Close connection and discard connection identifier. */
+      netconn_close(newconn);
+      netconn_delete(newconn);
+    }
+  }
+}
+
+void echo_server_netconn_init()
+{
+  sys_thread_new("echo", tcpecho_thread, NULL, DEFAULT_THREAD_STACKSIZE, WEBSERVER_THREAD_PRIO);
+}
+
 /**
   * @brief  Initialize the HTTP server (start its thread) 
   * @param  none

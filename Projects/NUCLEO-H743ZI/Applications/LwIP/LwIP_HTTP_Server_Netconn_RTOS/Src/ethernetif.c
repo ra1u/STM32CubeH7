@@ -831,3 +831,8 @@ static void ETH_critical_exit(){
   }
 }
 
+
+void my_trap(){
+	asm("bkpt 255");
+}
+

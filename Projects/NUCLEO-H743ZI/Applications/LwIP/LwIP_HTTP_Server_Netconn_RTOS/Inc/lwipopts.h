@@ -92,13 +92,14 @@ a lot of data that needs to be copied, this should be set high. */
 /* TCP receive window. */
 #define TCP_WND                 (4*TCP_MSS)
 
+#define LWIP_SO_SNDTIMEO 1
 
 /* ---------- ICMP options ---------- */
 #define LWIP_ICMP                       1
 
 
 /* ---------- DHCP options ---------- */
-#define LWIP_DHCP               1
+#define LWIP_DHCP               0
 
 
 /* ---------- UDP options ---------- */
